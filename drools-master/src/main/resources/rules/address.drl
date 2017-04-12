@@ -1,0 +1,92 @@
+//created on: 28.05.2015
+package plausibcheck.adress
+
+import java.util.ArrayList;  
+ import java.util.HashMap;  
+ import java.util.List;  
+ import java.util.Map;  
+ import java.util.Map.Entry;  
+import org.apache.commons.lang.time.DateUtils;
+ import java.util.Date; 
+import java.util.Calendar; 
+import com.ty.drools.SpringdroolsApplicationTests;
+
+
+//list any import classes here.
+import com.ty.drools.model.EngagementScore;
+//declare any global variables here
+
+function boolean isDateInCurrentMonth(String lastContactdate){
+Date date = new Date();
+Calendar cal = Calendar.getInstance();
+cal.setTime(date);
+int year = cal.get(Calendar.YEAR);
+int month = cal.get(Calendar.MONTH);
+String[] strings = {"yyyy-MM-dd"};
+date = DateUtils.parseDate(lastContactdate, strings);
+cal.setTime(date);
+if (cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month)
+								return true;
+return false;
+}
+
+rule "Get City For Thane Station"  
+no-loop
+   when  
+     pojo : EngagementScore(lastContactDates!=null,$lastContactDates : lastContactDates, $percentage:percentage)
+     entry : Entry() from $lastContactDates.entrySet()  
+     value : String() from entry.getValue() 
+     length : Integer() from $lastContactDates.size()
+     
+    eval(isDateInCurrentMonth(value))
+   then  
+
+     float presentMonth=pojo.getValue();
+     presentMonth++;
+     float fraction=presentMonth/length;
+     pojo.setPercentage(fraction*100);
+     pojo.setValue(presentMonth);
+ System.out.println(value + " station comes under " + entry.getKey() +" "+presentMonth +" "+pojo.getPercentage());  
+ end
+rule "portFolio1"
+	when 
+		e : EngagementScore(percentage >=90 && percentage<=100)
+	then 
+		e.setPortfolioScore(5);
+end
+	
+rule "portFolio2"
+	when 
+		e : EngagementScore(percentage >=80 && percentage<90)
+	then 
+		e.setPortfolioScore(4);
+end 
+	
+rule "portFolio3"
+	when 
+		e : EngagementScore(percentage >=70 && percentage<80)
+	then 
+		e.setPortfolioScore(3); 
+end
+
+rule "portFolio4"
+	when 
+		e : EngagementScore(percentage >=60 && percentage<70)
+	then 
+		e.setPortfolioScore(2); 
+end
+	
+rule "portFolio5"
+	when 
+		e : EngagementScore(percentage >=50 && percentage<60)
+	then 
+		e.setPortfolioScore(1); 
+end
+	
+rule "portFolio6"
+	when
+		e : EngagementScore(percentage<50)
+	then 
+		e.setPortfolioScore(0);
+end
+
